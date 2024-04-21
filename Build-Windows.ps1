@@ -13,4 +13,4 @@ cmake "$CurlDirectory" -B "build_$Configuration" `
 
 cmake --build "build_$Configuration" --config "$Configuration"
 cmake --install "build_$Configuration" --config "$Configuration" --prefix "release/$Configuration"
-Compress-Archive "release\$Configuration\*" "release\libcurl-windows-$Version-$Configuration.zip" -Verbose
+Compress-Archive "release\$Configuration\*" "release\curl-windows-$Version-$Configuration.zip" -Verbose

@@ -60,7 +60,7 @@ jobs:
       - name: "Upload artifacts"
         uses: "actions/upload-artifact@v4"
         with:
-          name: "libcurl-macos-${{ matrix.config }}"
+          name: "curl-macos-${{ matrix.config }}"
           path: "release/*.tar.gz"
 
   BuildWindows:
@@ -101,7 +101,7 @@ jobs:
       - name: "Upload artifacts"
         uses: "actions/upload-artifact@v4"
         with:
-          name: "opencv-windows-${{ matrix.config }}"
+          name: "curl-windows-${{ matrix.config }}"
           path: "release/*.zip"
 
   Release:

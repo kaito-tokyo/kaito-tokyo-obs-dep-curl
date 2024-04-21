@@ -19,4 +19,4 @@ cmake "$CURL_DIR" -B "build_$CONFIG" \
 
 cmake --build "build_$CONFIG"
 cmake --install "build_$CONFIG" --prefix "release/$CONFIG"
-tar -C "release/$CONFIG" -cvf "release/libcurl-macos-$VERSION-$CONFIG.tar.gz" .
+tar -C "release/$CONFIG" -cvf "release/curl-macos-$VERSION-$CONFIG.tar.gz" .
