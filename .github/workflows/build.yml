@@ -1,0 +1,145 @@
+---
+name: "build"
+
+"on":
+  push:
+    branches:
+      - "main"
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - "main"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: "${{ github.ref != 'refs/heads/main' }}"
+
+env:
+  CURL_VERSION: "curl-8_7_1"
+  CURL_BASEURL: "https://github.com/curl/curl/archive/refs/tags"
+  CURL_TARGZ_SHA256: "0e46c856f517602c347bb5fe5b73174f8ee798bc87f1a97235c95761f75fcc28"
+  CURL_ZIP_SHA256: "1522999600630964ADC3130EADA47DC0BE2A71908A36944B7AA78AAD2B1006B7"
+
+jobs:
+  BuildMac:
+    runs-on: "macos-14"
+
+    strategy:
+      matrix:
+        config:
+          - "Release"
+          - "Debug"
+
+    defaults:
+      run:
+        shell: "bash"
+
+    steps:
+      - name: "Get version"
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Download and extract Curl"
+        run: |
+          curl -fsSLO "$CURL_BASEURL/$CURL_VERSION.tar.gz"
+          echo "$CURL_TARGZ_SHA256  $CURL_VERSION.tar.gz" | shasum -c
+          tar -xf "$CURL_VERSION.tar.gz"
+
+      - name: "Run build-macos.sh"
+        run: './build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }} "curl-$CURL_VERSION"'
+
+      - name: "Upload artifacts"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "libcurl-macos-${{ matrix.config }}"
+          path: "release/*.tar.gz"
+
+  BuildWindows:
+    runs-on: "windows-2022"
+
+    strategy:
+      matrix:
+        config:
+          - "Release"
+          - "Debug"
+
+    steps:
+      - name: "Get version"
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Download and extract Curl"
+        run: |
+          Invoke-WebRequest -Uri "$Env:CURL_BASEURL/$Env:CURL_VERSION.zip" -OutFile "$Env:CURL_VERSION.zip"
+          $hash = Get-FileHash "$Env:CURL_VERSION.zip" -Algorithm SHA256
+          if ( $hash.Hash -ne "$Env:CURL_ZIP_SHA256" ) {
+            exit 1
+          }
+          Expand-Archive -Path "$Env:CURL_VERSION.zip" -DestinationPath "."
+
+      - name: "Run Build-Windows.ps1"
+        run: './Build-Windows.ps1 -Configuration "${{ matrix.config }}" -Version "${{ steps.get-version.outputs.version }}" -CurlDirectory "curl-$Env:CURL_VERSION"'
+
+      - name: "Upload artifacts"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "opencv-windows-${{ matrix.config }}"
+          path: "release/*.zip"
+
+  Release:
+    runs-on: "ubuntu-22.04"
+
+    if: "github.event_name == 'push' && contains(github.ref, 'refs/tags/')"
+
+    needs:
+      - "BuildMac"
+      - "BuildWindows"
+
+    permissions:
+      contents: "write"
+
+    defaults:
+      run:
+        shell: "bash"
+
+    steps:
+      - name: "Get version"
+        shell: "bash"
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - name: "Download build artifacts"
+        uses: "actions/download-artifact@v4"
+
+      - name: "Create Release"
+        uses: "softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b"
+        with:
+          draft: true
+          tag_name: "${{ steps.get-version.outputs.version }}"
+          name: "${{ steps.get-version.outputs.version }}"
+          files: |
+            ${{ github.workspace }}/**/*.tar.gz
+            ${{ github.workspace }}/**/*.zip

@@ -1,0 +1,6 @@
+build*/
+release/
+curl-*/
+*.tar.gz
+*.zip
+.DS_Store
