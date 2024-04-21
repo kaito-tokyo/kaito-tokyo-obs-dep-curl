@@ -50,9 +50,9 @@ jobs:
 
       - name: "Download and extract Curl"
         run: |
-          curl -fsSLO "$CURL_BASEURL/curl-$CURL_VERSION.tar.gz"
-          echo "$CURL_TARGZ_SHA256  curl-$CURL_VERSION.tar.gz" | shasum -c
-          tar -xf "curl-$CURL_VERSION.tar.gz"
+          curl -fsSLO "$CURL_BASEURL/$CURL_VERSION.tar.gz"
+          echo "$CURL_TARGZ_SHA256  $CURL_VERSION.tar.gz" | shasum -c
+          tar -xf "$CURL_VERSION.tar.gz"
 
       - name: "Run build-macos.sh"
         run: './build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }} "curl-$CURL_VERSION"'
@@ -88,12 +88,12 @@ jobs:
 
       - name: "Download and extract Curl"
         run: |
-          Invoke-WebRequest -Uri "$Env:CURL_BASEURL/$Env:CURL_VERSION.zip" -OutFile "curl-$Env:CURL_VERSION.zip"
-          $hash = Get-FileHash "curl-$Env:CURL_VERSION.zip" -Algorithm SHA256
+          Invoke-WebRequest -Uri "$Env:CURL_BASEURL/$Env:CURL_VERSION.zip" -OutFile "$Env:CURL_VERSION.zip"
+          $hash = Get-FileHash "$Env:CURL_VERSION.zip" -Algorithm SHA256
           if ( $hash.Hash -ne "$Env:CURL_ZIP_SHA256" ) {
             exit 1
           }
-          Expand-Archive -Path "curl-$Env:CURL_VERSION.zip" -DestinationPath "."
+          Expand-Archive -Path "$Env:CURL_VERSION.zip" -DestinationPath "."
 
       - name: "Run Build-Windows.ps1"
         run: './Build-Windows.ps1 -Configuration "${{ matrix.config }}" -Version "${{ steps.get-version.outputs.version }}" -CurlDirectory "curl-$Env:CURL_VERSION"'
