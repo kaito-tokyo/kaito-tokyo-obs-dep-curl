@@ -48,9 +48,9 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v4"
 
-      - name: "Download and extract OpenCV"
+      - name: "Download and extract Curl"
         run: |
-          curl -fssLO "$CURL_BASEURL/curl-$CURL_VERSION.tar.gz"
+          curl -fsSLO "$CURL_BASEURL/curl-$CURL_VERSION.tar.gz"
           echo "$CURL_TARGZ_SHA256  curl-$CURL_VERSION.tar.gz" | shasum -c
           tar -xf "curl-$CURL_VERSION.tar.gz"
 
@@ -86,7 +86,7 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v4"
 
-      - name: "Download and extract OpenCV"
+      - name: "Download and extract Curl"
         run: |
           Invoke-WebRequest -Uri "$Env:CURL_BASEURL/$Env:CURL_VERSION.zip" -OutFile "curl-$Env:CURL_VERSION.zip"
           $hash = Get-FileHash "curl-$Env:CURL_VERSION.zip" -Algorithm SHA256
@@ -96,7 +96,7 @@ jobs:
           Expand-Archive -Path "curl-$Env:CURL_VERSION.zip" -DestinationPath "."
 
       - name: "Run Build-Windows.ps1"
-        run: './Build-Windows.ps1 -Configuration "${{ matrix.config }}" -Version "${{ steps.get-version.outputs.version }}" -OpenCVDirectory "opencv-$Env:OPENCV_VERSION"'
+        run: './Build-Windows.ps1 -Configuration "${{ matrix.config }}" -Version "${{ steps.get-version.outputs.version }}" -CurlDirectory "curl-$Env:CURL_VERSION"'
 
       - name: "Upload artifacts"
         uses: "actions/upload-artifact@v4"

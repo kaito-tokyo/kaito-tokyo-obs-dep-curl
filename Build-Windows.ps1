@@ -1,6 +1,6 @@
 Param($Configuration, $Version, $CurlDirectory)
 
-cmake curl -B "build_$Configuration" `
+cmake "$CurlDirectory" -B "build_$Configuration" `
   -DCMAKE_BUILD_TYPE="$Configuration" `
   -DCURL_USE_OPENSSL=OFF `
   -DCURL_USE_SCHANNEL=ON `
