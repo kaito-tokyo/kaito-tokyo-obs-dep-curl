@@ -1,4 +1,4 @@
-# kaito-tokyo-obs-dep-libcurl
+# kaito-tokyo-obs-dep-curl
 
 ## Build instructions for macOS
 
